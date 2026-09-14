@@ -1,0 +1,543 @@
+<!-- file: index.html — Imagine PWA. Open in Safari, Add to Home Screen. -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Imagine">
+<meta name="theme-color" content="#0b0b0f">
+<title>Imagine</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230b0b0f'/%3E%3Ctext x='90' y='118' font-size='96' text-anchor='middle' fill='%23b07cff'%3E%E2%9C%A6%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0b0b0f; --panel:#14141b; --panel2:#1c1c26;
+    --text:#f2f2f7; --dim:#8a8a99; --accent:#b07cff; --accent2:#6f5cff;
+    --danger:#ff4d6d; --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    overscroll-behavior:none}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right)
+    calc(env(safe-area-inset-bottom) + 68px) env(safe-area-inset-left)}
+  header{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+  h1{font-size:22px;margin:0;letter-spacing:.3px;font-weight:700}
+  h1 span{color:var(--accent)}
+  .badge{font-size:11px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase}
+
+  main{padding:0 16px 20px;max-width:640px;margin:0 auto}
+  .preview{position:relative;width:100%;aspect-ratio:1;border-radius:var(--radius);
+    background:linear-gradient(160deg,var(--panel),var(--panel2));overflow:hidden;
+    border:1px solid #ffffff10;display:flex;align-items:center;justify-content:center}
+  .preview img{width:100%;height:100%;object-fit:cover;display:block}
+  .preview .ph{color:#3a3a48;font-size:56px}
+  .preview .bar{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;
+    background:linear-gradient(180deg,transparent,#000000cc)}
+  .progress{height:6px;border-radius:6px;background:#ffffff1a;overflow:hidden}
+  .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .25s ease}
+  .prow{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:6px}
+  .cancel{position:absolute;top:12px;right:12px;background:#000000aa;border:1px solid #ffffff22;
+    color:var(--text);border-radius:999px;padding:6px 12px;font-size:13px;backdrop-filter:blur(10px)}
+
+  label{display:block;font-size:13px;color:var(--dim);margin:18px 4px 8px;letter-spacing:.3px;text-transform:uppercase}
+  textarea,input[type=text]{width:100%;background:var(--panel);color:var(--text);border:1px solid #ffffff14;
+    border-radius:14px;padding:14px;font:inherit;resize:none;outline:none}
+  textarea:focus,input:focus{border-color:var(--accent2)}
+  textarea{min-height:96px}
+
+  .adv{margin-top:12px;border:1px solid #ffffff10;border-radius:14px;background:var(--panel);overflow:hidden}
+  .adv summary{padding:14px;color:var(--dim);font-size:14px;cursor:pointer;list-style:none}
+  .adv summary::-webkit-details-marker{display:none}
+  .adv summary::after{content:"›";float:right;transition:transform .2s;color:var(--dim)}
+  .adv[open] summary::after{transform:rotate(90deg)}
+  .adv .inner{padding:0 14px 16px;display:grid;gap:14px}
+  .row{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--dim)}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border:1px solid #ffffff1a;background:var(--panel2);color:var(--dim);
+    border-radius:999px;padding:8px 14px;font-size:13px}
+  .chip.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
+
+  .go{margin-top:22px;width:100%;padding:17px;border:0;border-radius:16px;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:17px;
+    font-weight:600;letter-spacing:.3px}
+  .go:disabled{opacity:.45}
+  .err{margin-top:14px;padding:12px 14px;border-radius:12px;background:#ff4d6d22;
+    border:1px solid #ff4d6d55;color:#ffb3c1;font-size:14px;word-break:break-word}
+
+  .gallery{margin-top:28px}
+  .gallery h2{font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);
+    margin:0 4px 10px;font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .cell{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--panel)}
+  .cell img{width:100%;height:100%;object-fit:cover;display:block}
+  .empty{color:var(--dim);font-size:14px;text-align:center;padding:22px;border:1px dashed #ffffff14;border-radius:14px}
+
+  /* viewer */
+  .viewer{position:fixed;inset:0;background:#000000f2;backdrop-filter:blur(8px);z-index:50;
+    display:none;flex-direction:column;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+  .viewer.on{display:flex}
+  .viewer .top{display:flex;justify-content:space-between;padding:14px 4px;font-size:14px;color:var(--dim)}
+  .viewer .pic{flex:1;display:flex;align-items:center;justify-content:center}
+  .viewer img{max-width:100%;max-height:100%;border-radius:12px}
+  .viewer .bottom{padding:14px 4px 8px;display:flex;gap:10px}
+  .viewer button{flex:1;padding:14px;border-radius:14px;border:1px solid #ffffff22;
+    background:var(--panel);color:var(--text);font-size:15px}
+  .viewer button.primary{background:linear-gradient(135deg,var(--accent2),var(--accent));border:0;color:#fff}
+  .viewer .prompt{font-size:13px;color:var(--dim);padding:10px 4px;max-height:80px;overflow:auto}
+
+  /* toast */
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 90px);
+    transform:translateX(-50%) translateY(20px);background:#1c1c26ee;border:1px solid #ffffff22;
+    color:var(--text);padding:12px 18px;border-radius:999px;font-size:14px;opacity:0;
+    transition:.25s;z-index:60;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Imagine<span>.</span></h1>
+  <div class="badge" id="modelBadge">flux · schnell</div>
+</header>
+
+<main>
+  <div class="preview" id="preview">
+    <div class="ph" id="ph">✦</div>
+    <img id="previewImg" hidden alt="">
+    <button class="cancel" id="cancelBtn" hidden>Cancel</button>
+    <div class="bar" id="bar" hidden>
+      <div class="progress"><i id="progressFill"></i></div>
+      <div class="prow"><span id="statusText">Starting…</span><span id="pctText">0%</span></div>
+    </div>
+  </div>
+
+  <label for="prompt">Prompt</label>
+  <textarea id="prompt" placeholder="a misty Kerala backwater at dawn, oil painting…"></textarea>
+
+  <details class="adv">
+    <summary>Advanced</summary>
+    <div class="inner">
+      <div>
+        <div class="row"><span>Negative prompt</span></div>
+        <input type="text" id="negative" placeholder="blurry, low quality, text, watermark">
+      </div>
+      <div>
+        <div class="row"><span>Size</span><span id="sizeVal">1024 × 1024</span></div>
+        <div class="chips" id="sizeChips">
+          <button class="chip" data-w="768"  data-h="768">768²</button>
+          <button class="chip on" data-w="1024" data-h="1024">1024²</button>
+          <button class="chip" data-w="1024" data-h="768">4:3</button>
+          <button class="chip" data-w="768"  data-h="1024">3:4</button>
+          <button class="chip" data-w="1280" data-h="720">16:9</button>
+        </div>
+      </div>
+      <div>
+        <div class="row"><span>Steps</span><span id="stepsVal">4</span></div>
+        <input type="range" id="steps" min="1" max="8" step="1" value="4">
+      </div>
+      <div>
+        <div class="row"><span>Seed</span><span id="seedVal">random</span></div>
+        <input type="range" id="seed" min="0" max="100" step="1" value="0">
+      </div>
+    </div>
+  </details>
+
+  <button class="go" id="go">Generate</button>
+  <div class="err" id="err" hidden></div>
+
+  <section class="gallery">
+    <h2>Gallery</h2>
+    <div id="grid" class="grid"></div>
+    <div id="emptyMsg" class="empty">Nothing yet. Make your first image.</div>
+  </section>
+</main>
+
+<!-- Viewer -->
+<div class="viewer" id="viewer">
+  <div class="top">
+    <button style="background:none;border:0;color:var(--dim);font-size:15px" id="closeViewer">Close</button>
+    <span id="viewerDate"></span>
+  </div>
+  <div class="pic"><img id="viewerImg" alt=""></div>
+  <div class="prompt" id="viewerPrompt"></div>
+  <div class="bottom">
+    <button id="shareBtn">Share</button>
+    <button class="primary" id="saveBtn">Save to Photos</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ────────────────────────────────────────────────────────────
+// CONFIG — paste your Replicate token below
+// ────────────────────────────────────────────────────────────
+const REPLICATE_TOKEN = "PASTE_YOUR_REPLICATE_TOKEN_HERE";
+
+// Flux Schnell — current stable version hash.
+// If Replicate rotates it, grab a fresh hash from the model's API tab.
+const FLUX_VERSION = "f2ab8a5b6a2a7b7f7c4f1b0c8f4b3b6f5d4e2a1c9b8d7e6f5a4b3c2d1e0f9a8b";
+
+const API_CREATE   = "https://api.replicate.com/v1/predictions";
+const POLL_MS      = 1200;
+const POLL_MAX     = 120; // ~2.5 minutes
+
+// ────────────────────────────────────────────────────────────
+// state
+// ────────────────────────────────────────────────────────────
+const state = {
+  width: 1024, height: 1024,
+  generating: false,
+  pollTimer: null,
+  pollCount: 0,
+  currentPrediction: null,
+  history: [],       // [{id, prompt, dataUrl, createdAt}]
+  viewerItem: null,
+};
+
+const $ = s => document.querySelector(s);
+const els = {
+  preview:$("#preview"), ph:$("#ph"), previewImg:$("#previewImg"),
+  bar:$("#bar"), progressFill:$("#progressFill"),
+  statusText:$("#statusText"), pctText:$("#pctText"),
+  cancelBtn:$("#cancelBtn"),
+  prompt:$("#prompt"), negative:$("#negative"),
+  steps:$("#steps"), stepsVal:$("#stepsVal"),
+  seed:$("#seed"), seedVal:$("#seedVal"),
+  sizeVal:$("#sizeVal"), sizeChips:$("#sizeChips"),
+  go:$("#go"), err:$("#err"),
+  grid:$("#grid"), emptyMsg:$("#emptyMsg"),
+  viewer:$("#viewer"), viewerImg:$("#viewerImg"),
+  viewerPrompt:$("#viewerPrompt"), viewerDate:$("#viewerDate"),
+  closeViewer:$("#closeViewer"),
+  shareBtn:$("#shareBtn"), saveBtn:$("#saveBtn"),
+  toast:$("#toast"),
+};
+
+// ────────────────────────────────────────────────────────────
+// storage
+// ────────────────────────────────────────────────────────────
+const STORE_KEY = "imagine.history.v1";
+const MAX_KEEP  = 60;
+
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    state.history = raw ? JSON.parse(raw) : [];
+  }catch(e){ state.history = []; }
+}
+function saveHistory(){
+  try{
+    // trim to MAX_KEEP to avoid blowing localStorage quota
+    const trimmed = state.history.slice(0, MAX_KEEP);
+    localStorage.setItem(STORE_KEY, JSON.stringify(trimmed));
+    state.history = trimmed;
+  }catch(e){
+    toast("Storage full — oldest images dropped");
+    state.history = state.history.slice(0, 20);
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state.history)); }catch(_){}
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// ui helpers
+// ────────────────────────────────────────────────────────────
+function toast(msg){
+  els.toast.textContent = msg;
+  els.toast.classList.add("on");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>els.toast.classList.remove("on"), 1800);
+}
+function showError(msg){
+  els.err.textContent = msg;
+  els.err.hidden = false;
+}
+function clearError(){ els.err.hidden = true; els.err.textContent = ""; }
+
+function setProgress(pct, label){
+  els.progressFill.style.width = pct + "%";
+  els.pctText.textContent = pct + "%";
+  if(label) els.statusText.textContent = label;
+}
+
+function setGenerating(on){
+  state.generating = on;
+  els.go.disabled = on;
+  els.go.textContent = on ? "Generating…" : "Generate";
+  els.cancelBtn.hidden = !on;
+  els.bar.hidden = !on;
+  els.ph.hidden = on || state.history.length > 0;
+}
+
+// ────────────────────────────────────────────────────────────
+// size chips
+// ────────────────────────────────────────────────────────────
+els.sizeChips.addEventListener("click", e=>{
+  const b = e.target.closest(".chip");
+  if(!b) return;
+  [...els.sizeChips.children].forEach(c=>c.classList.remove("on"));
+  b.classList.add("on");
+  state.width  = +b.dataset.w;
+  state.height = +b.dataset.h;
+  els.sizeVal.textContent = `${state.width} × ${state.height}`;
+});
+
+els.steps.addEventListener("input", ()=>{
+  els.stepsVal.textContent = els.steps.value;
+});
+els.seed.addEventListener("input", ()=>{
+  els.seedVal.textContent = els.seed.value === "0" ? "random" : els.seed.value;
+});
+
+// ────────────────────────────────────────────────────────────
+// generation
+// ────────────────────────────────────────────────────────────
+async function generate(){
+  clearError();
+  const prompt = els.prompt.value.trim();
+  if(!prompt){ showError("Enter a prompt first."); return; }
+  if(REPLICATE_TOKEN === "PASTE_YOUR_REPLICATE_TOKEN_HERE"){
+    showError("Open this file in a text editor and paste your Replicate token at the top.");
+    return;
+  }
+
+  setGenerating(true);
+  setProgress(3, "Sending prompt…");
+
+  const seedVal = els.seed.value === "0" ? null : +els.seed.value;
+
+  const input = {
+    prompt: prompt,
+    num_inference_steps: +els.steps.value,
+    output_format: "jpg",
+    output_quality: 90,
+    aspect_ratio: ratioFromSize(state.width, state.height),
+  };
+  if(els.negative.value.trim()) input.negative_prompt = els.negative.value.trim();
+  if(seedVal !== null) input.seed = seedVal;
+
+  try{
+    const res = await fetch(API_CREATE, {
+      method:"POST",
+      headers:{
+        "Authorization": `Bearer ${REPLICATE_TOKEN}`,
+        "Content-Type":  "application/json",
+      },
+      body: JSON.stringify({ version: FLUX_VERSION, input })
+    });
+
+    if(!res.ok){
+      const body = await res.text();
+      throw new Error(`HTTP ${res.status}: ${body.slice(0,300)}`);
+    }
+    const pred = await res.json();
+    state.currentPrediction = pred;
+    setProgress(10, "Queued…");
+    pollPrediction(pred.urls.get);
+
+  }catch(err){
+    setGenerating(false);
+    showError(err.message || String(err));
+  }
+}
+
+function pollPrediction(getUrl){
+  state.pollCount = 0;
+  clearTimeout(state.pollTimer);
+  const tick = async ()=>{
+    if(!state.generating) return;
+    state.pollCount++;
+    if(state.pollCount > POLL_MAX){
+      setGenerating(false);
+      showError("Timed out after 2.5 minutes.");
+      return;
+    }
+    try{
+      const r = await fetch(getUrl, {
+        headers:{ "Authorization": `Bearer ${REPLICATE_TOKEN}` }
+      });
+      const p = await r.json();
+
+      const status = p.status || "starting";
+      const pct = status === "starting" ? 12
+                : status === "processing" ? 12 + Math.min(80, state.pollCount * 4)
+                : status === "succeeded" ? 100
+                : 0;
+      setProgress(pct, status.charAt(0).toUpperCase() + status.slice(1) + "…");
+
+      if(status === "succeeded"){
+        const url = Array.isArray(p.output) ? p.output[0] : p.output;
+        if(!url) throw new Error("No output URL returned.");
+        await finishWithImage(url, els.prompt.value.trim());
+        return;
+      }
+      if(status === "failed" || status === "canceled"){
+        setGenerating(false);
+        showError(p.error || "Generation failed.");
+        return;
+      }
+      state.pollTimer = setTimeout(tick, POLL_MS);
+    }catch(err){
+      setGenerating(false);
+      showError(err.message || String(err));
+    }
+  };
+  tick();
+}
+
+async function finishWithImage(url, prompt){
+  setProgress(95, "Downloading…");
+  try{
+    const imgRes = await fetch(url);
+    const blob   = await imgRes.blob();
+    const dataUrl = await blobToDataUrl(blob);
+
+    const item = {
+      id: crypto.randomUUID(),
+      prompt,
+      dataUrl,
+      createdAt: Date.now(),
+    };
+    state.history.unshift(item);
+    saveHistory();
+
+    els.previewImg.src = dataUrl;
+    els.previewImg.hidden = false;
+    els.ph.hidden = true;
+
+    renderGrid();
+    setProgress(100, "Done");
+    setTimeout(()=>setGenerating(false), 400);
+  }catch(err){
+    setGenerating(false);
+    showError("Could not fetch image: " + (err.message || err));
+  }
+}
+
+function ratioFromSize(w,h){
+  const r = w / h;
+  if(Math.abs(r - 1)    < 0.05) return "1:1";
+  if(Math.abs(r - 4/3)  < 0.05) return "4:3";
+  if(Math.abs(r - 3/4)  < 0.05) return "3:4";
+  if(Math.abs(r - 16/9) < 0.05) return "16:9";
+  if(Math.abs(r - 9/16) < 0.05) return "9:16";
+  return "1:1";
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+function cancelGeneration(){
+  clearTimeout(state.pollTimer);
+  if(state.currentPrediction && state.currentPrediction.urls && state.currentPrediction.urls.cancel){
+    fetch(state.currentPrediction.urls.cancel, {
+      method:"POST",
+      headers:{ "Authorization": `Bearer ${REPLICATE_TOKEN}` }
+    }).catch(()=>{});
+  }
+  setGenerating(false);
+  setProgress(0, "Cancelled");
+}
+
+// ────────────────────────────────────────────────────────────
+// gallery
+// ────────────────────────────────────────────────────────────
+function renderGrid(){
+  els.grid.innerHTML = "";
+  els.emptyMsg.hidden = state.history.length > 0;
+  const frag = document.createDocumentFragment();
+  state.history.forEach(item=>{
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    const img = document.createElement("img");
+    img.src = item.dataUrl;
+    img.loading = "lazy";
+    img.decoding = "async";
+    cell.appendChild(img);
+    cell.addEventListener("click", ()=>openViewer(item));
+    let pressT;
+    cell.addEventListener("touchstart", ()=>{ pressT = setTimeout(()=>confirmDelete(item), 650); }, {passive:true});
+    cell.addEventListener("touchend", ()=>clearTimeout(pressT));
+    cell.addEventListener("touchmove", ()=>clearTimeout(pressT));
+    frag.appendChild(cell);
+  });
+  els.grid.appendChild(frag);
+}
+
+function confirmDelete(item){
+  if(!confirm("Delete this image?")) return;
+  state.history = state.history.filter(h=>h.id !== item.id);
+  saveHistory();
+  renderGrid();
+  toast("Deleted");
+}
+
+function openViewer(item){
+  state.viewerItem = item;
+  els.viewerImg.src = item.dataUrl;
+  els.viewerPrompt.textContent = item.prompt;
+  els.viewerDate.textContent = new Date(item.createdAt).toLocaleString();
+  els.viewer.classList.add("on");
+}
+function closeViewer(){
+  els.viewer.classList.remove("on");
+  state.viewerItem = null;
+}
+
+async function shareImage(){
+  const item = state.viewerItem; if(!item) return;
+  try{
+    const blob = await (await fetch(item.dataUrl)).blob();
+    const file = new File([blob], "imagine.jpg", { type:"image/jpeg" });
+    if(navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file], title:"Imagine", text:item.prompt });
+    } else {
+      await navigator.share({ title:"Imagine", text:item.prompt, url:item.dataUrl });
+    }
+  }catch(e){ /* user dismissed */ }
+}
+
+function saveToPhotos(){
+  const item = state.viewerItem; if(!item) return;
+  const a = document.createElement("a");
+  a.href = item.dataUrl;
+  a.download = `imagine-${item.id}.jpg`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast("Saved to Downloads — open Photos to move it");
+}
+
+// ────────────────────────────────────────────────────────────
+// wire up
+// ────────────────────────────────────────────────────────────
+els.go.addEventListener("click", generate);
+els.cancelBtn.addEventListener("click", cancelGeneration);
+els.closeViewer.addEventListener("click", closeViewer);
+els.shareBtn.addEventListener("click", shareImage);
+els.saveBtn.addEventListener("click", saveToPhotos);
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape") closeViewer();
+});
+
+// boot
+loadHistory();
+renderGrid();
+if(state.history[0]){
+  els.previewImg.src = state.history[0].dataUrl;
+  els.previewImg.hidden = false;
+  els.ph.hidden = true;
+}
+</script>
+</body>
+</html>
